@@ -937,8 +937,6 @@ body{
         <path d="M 12.9 13.3 C 13.3 13.8 14.1 15.0 14.9 16.2 C 15.7 17.4 16.2 18.3 15.9 18.9 C 15.6 19.5 14.7 19.6 14.0 19.0 C 13.3 18.4 12.7 17.3 12.2 16.0 C 11.8 14.9 12.0 13.7 12.4 13.1 Z" fill="var(--text)"/>
       </svg>
     </button>
-    <button class="pill inv" id="loadBtn" style="font-size:11px;letter-spacing:0;font-weight:400">Load</button>
-    <button class="pill inv" id="fsaBtn" style="display:none;font-size:11px;letter-spacing:0;font-weight:400" title="Re-open last folder">Reopen</button>
   </div>
 </div>
 
@@ -1093,8 +1091,10 @@ body{
         <div class="settings-row">Albums<span id="statAlbums" style="color:var(--text3)">0</span></div>
         <div class="settings-row">Artists<span id="statArtists" style="color:var(--text3)">0</span></div>
         <div class="settings-row">Favourites<span id="statFavs" style="color:var(--text3)">0</span></div>
+        <div class="settings-row">Load folder<button class="pill inv" id="loadBtn">Load</button></div>
+        <div class="settings-row" id="fsaRow" style="display:none">Reload library<button class="pill inv" id="fsaBtn">Reload</button></div>
         <div class="settings-row" style="border:none">
-          <button class="pill inv" onclick="clearLibrary()">CLEAR LIBRARY</button>
+          <button class="pill inv" onclick="clearLibrary()">Clear library</button>
         </div>
       </div>
       <div class="settings-section">
@@ -1450,7 +1450,6 @@ function init(){
 
   // FSA reopen button
   if('showDirectoryPicker' in window){
-    $('fsaBtn').style.display='';
     // Auto-restore saved folder on launch
     autoRestoreFolder();
   }
@@ -1518,26 +1517,20 @@ async function autoRestoreFolder(){
   try{
     const handle = await idbLoad();
     if(!handle) return;
-    // Check if we still have permission
     const perm = await handle.queryPermission({mode:'read'});
     if(perm === 'granted'){
-      // Permission already granted — load silently
       state.fsaHandle = handle;
-      showToast('Restoring library...');
       await scanAndLoad(handle);
     } else if(perm === 'prompt'){
-      // Need to re-ask — show REOPEN button prominently
-      $('fsaBtn').textContent = 'RELOAD LIBRARY';
-      $('fsaBtn').classList.remove('inv');
-      $('fsaBtn').style.cssText='animation:pulse 2s ease-in-out infinite';
-      // Add pulse animation
-      if(!document.getElementById('pulseStyle')){
-        const s=document.createElement('style');s.id='pulseStyle';
-        s.textContent='@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}';
-        document.head.appendChild(s);
+      // Auto-request permission — browser will show a small prompt
+      const newPerm = await handle.requestPermission({mode:'read'});
+      if(newPerm === 'granted'){
+        state.fsaHandle = handle;
+        await scanAndLoad(handle);
+      } else {
+        await idbClear();
       }
     } else {
-      // Permission denied — clear saved handle
       await idbClear();
     }
   }catch(e){}
@@ -1547,9 +1540,10 @@ async function openFSA(){
   try {
     const handle = await window.showDirectoryPicker({mode:'read'});
     state.fsaHandle = handle;
-    await idbSave(handle); // persist for next session
+    await idbSave(handle);
     await scanAndLoad(handle);
-  } catch(e){ /* user cancelled */ }
+    const fr=$('fsaRow');if(fr)fr.style.display='';
+  } catch(e){}
 }
 
 async function scanAndLoad(handle){
@@ -1688,7 +1682,7 @@ async function clearLibrary(){
   audio.pause();audio.src='';
   $('miniPlayer').classList.remove('visible');
   idbClear(); // forget saved folder
-  $('fsaBtn').textContent='REOPEN';$('fsaBtn').classList.add('inv');$('fsaBtn').style.cssText='';
+  const fr=$('fsaRow');if(fr)fr.style.display='';
   renderAll();updateStats();
 }
 
