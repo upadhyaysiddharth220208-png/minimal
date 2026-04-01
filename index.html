@@ -459,8 +459,9 @@ body{
   border-radius:1px;margin-top:6px;
 }
 .mini-progress{
-  height:1px;background:var(--scr-track);
+  height:2px;background:var(--scr-track);
   margin-bottom:10px;overflow:hidden;
+  transition:background 1.2s ease;
 }
 .mini-progress-fill{
   height:100%;background:var(--scr-fill);
@@ -514,10 +515,20 @@ body{
   background:var(--bg);
   z-index:200;display:flex;flex-direction:column;
   transform:translateY(100%);
-  transition:transform .48s cubic-bezier(.32,1.12,.64,1);
+  transition:transform .48s cubic-bezier(.32,1.12,.64,1),
+    background 1.2s cubic-bezier(.4,0,.2,1);
   overflow:hidden;
 }
 .overlay.open{transform:translateY(0)}
+/* colour wash layer — sits behind content */
+.ov-colour-wash{
+  position:absolute;inset:0;
+  opacity:0;
+  transition:opacity 1.4s ease, background 1.4s ease;
+  pointer-events:none;
+  z-index:0;
+}
+.overlay > *:not(.ov-colour-wash){position:relative;z-index:1}
 .ov-handle{
   width:28px;height:2px;background:var(--border-mid);border-radius:1px;
   margin:16px auto 0;flex-shrink:0;cursor:pointer;
@@ -919,15 +930,6 @@ body{
 </head>
 <body>
 
-<div id="unlockOverlay" class="modal-backdrop" style="z-index:9000; align-items:center;">
-  <div class="modal" style="border-radius:var(--r-lg); width:min(320px, 90%); text-align:center; padding:32px 24px;">
-    <div style="font-size:32px; margin-bottom:12px;">🔒</div>
-    <h3 style="margin-bottom:8px;">Unlock Library</h3>
-    <p style="font-size:13px; color:var(--text3); margin-bottom:24px; line-height:1.5;">Tap below to instantly reconnect your local music folder and restore playback permissions.</p>
-    <button class="pill primary" id="unlockBtn" style="padding:12px 24px; font-size:12px; width:100%;">TAP TO UNLOCK</button>
-  </div>
-</div>
-
 <div id="loadingOverlay">
   <div class="loading-spinner"></div>
   <div class="loading-bar-wrap"><div class="loading-bar" id="loadingBar"></div></div>
@@ -935,6 +937,7 @@ body{
   <div class="loading-sub" id="loadingSub"></div>
 </div>
 
+<!-- HEADER -->
 <div class="hdr" id="hdr">
   <div class="logo">minimal<span>.</span></div>
   <div class="hdr-right">
@@ -948,6 +951,7 @@ body{
   </div>
 </div>
 
+<!-- GLOBAL SEARCH BAR -->
 <div class="global-search-wrap" id="globalSearchWrap">
   <div class="global-search-inner">
     <input class="global-search-input" id="globalSearchInput" type="text" placeholder="Search...">
@@ -955,11 +959,14 @@ body{
   </div>
 </div>
 
+<!-- TABS -->
 <div class="tab-nav" id="tabNav"></div>
 
+<!-- VIEWS -->
 <div class="views-wrap" id="viewsWrap">
   <div class="views-slider" id="viewsSlider">
 
+    <!-- ALBUMS -->
     <div class="view" id="viewAlbums">
 
       <div id="albumsContent">
@@ -971,6 +978,7 @@ body{
       </div>
     </div>
 
+    <!-- ARTISTS -->
     <div class="view" id="viewArtists">
 
       <div id="artistsContent">
@@ -982,6 +990,7 @@ body{
       </div>
     </div>
 
+    <!-- TRACKS -->
     <div class="view" id="viewTracks">
       <div class="toolbar" style="padding-bottom:8px">
         <select class="sort-select" id="sortSelect">
@@ -1012,6 +1021,7 @@ body{
       </div>
     </div>
 
+    <!-- PLAYLISTS -->
     <div class="view" id="viewPlaylists">
       <div class="section-hdr">
         <h3>Playlists</h3>
@@ -1026,6 +1036,7 @@ body{
       </div>
     </div>
 
+    <!-- FAVORITES -->
     <div class="view" id="viewFavorites">
       <div id="favoritesContent">
         <div class="empty-state">
@@ -1036,6 +1047,7 @@ body{
       </div>
     </div>
 
+    <!-- HISTORY -->
     <div class="view" id="viewHistory">
       <div class="section-hdr">
         <h3>Recently Played</h3>
@@ -1050,6 +1062,7 @@ body{
       </div>
     </div>
 
+    <!-- SETTINGS -->
     <div class="view" id="viewSettings">
       <div class="settings-section">
         <div class="settings-label">Appearance</div>
@@ -1101,7 +1114,7 @@ body{
       </div>
       <div class="settings-section" style="padding-bottom:120px">
         <div class="settings-label">About</div>
-        <div class="settings-row">Version<span style="color:var(--text3)">minimal. v2.1</span></div>
+        <div class="settings-row">Version<span style="color:var(--text3)">minimal. v2</span></div>
         <div class="settings-row" style="border:none">Keyboard<span style="color:var(--text3);font-size:11px">Space · ←→ seek · ⇧←→ track · F fav</span></div>
       </div>
     </div>
@@ -1109,6 +1122,7 @@ body{
   </div>
 </div>
 
+<!-- MINI PLAYER -->
 <div class="mini-player" id="miniPlayer">
   <div class="mini-drag-handle" id="miniDragHandle"><div class="mini-drag-dots"></div></div>
   <div class="mini-progress"><div class="mini-progress-fill" id="miniProgressFill"></div></div>
@@ -1130,7 +1144,8 @@ body{
   </div>
 </div>
 
-<div class="overlay" id="nowOverlay">
+<!-- NOW PLAYING OVERLAY -->
+<div class="overlay" id="nowOverlay"><div class="ov-colour-wash" id="ovColourWash"></div>
   <div class="ov-handle" id="ovHandle"></div>
   <div class="ov-header">
     <div class="ov-label">Now Playing</div>
@@ -1151,6 +1166,7 @@ body{
       <div class="now-genre" id="nowGenre"></div>
     </div>
 
+    <!-- Scrubber -->
     <div class="scr-wrap">
       <input type="range" class="scrubber" id="scrubber" min="0" max="100" value="0">
     </div>
@@ -1160,8 +1176,10 @@ body{
     </div>
 
 
+    <!-- Sleep indicator (hidden, kept for sleep timer function) -->
     <div class="sleep-indicator" id="sleepIndicator" style="display:none"></div>
 
+    <!-- Controls -->
     <div class="pb-controls">
       <button class="ctrl-btn" id="shuffleBtn">SHUFFLE</button>
       <button class="ctrl-btn" id="prevBtn">PREV</button>
@@ -1172,6 +1190,7 @@ body{
   </div>
 </div>
 
+<!-- QUEUE DRAWER -->
 <div class="backdrop" id="queueBackdrop"></div>
 <div class="queue-drawer" id="queueDrawer">
   <div class="queue-drawer-handle" id="queueHandle"></div>
@@ -1188,6 +1207,7 @@ body{
   </div>
 </div>
 
+<!-- PLAYLIST MODAL -->
 <div class="modal-backdrop" id="plModal">
   <div class="modal">
     <h3 id="plModalTitle">New Playlist</h3>
@@ -1202,6 +1222,7 @@ body{
   </div>
 </div>
 
+<!-- SLEEP TIMER MODAL -->
 <div class="modal-backdrop" id="sleepModal">
   <div class="modal">
     <h3>Sleep Timer</h3>
@@ -1213,6 +1234,7 @@ body{
   </div>
 </div>
 
+<!-- LYRICS EDIT MODAL -->
 <div class="modal-backdrop" id="lyricsModal">
   <div class="modal">
     <h3>Edit Lyrics</h3>
@@ -1228,6 +1250,7 @@ body{
   </div>
 </div>
 
+<!-- ADD TO PLAYLIST MODAL -->
 <div class="modal-backdrop" id="addToPLModal">
   <div class="modal">
     <h3>Add to Playlist</h3>
@@ -1238,6 +1261,7 @@ body{
   </div>
 </div>
 
+<!-- CONTEXT MENU -->
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" id="ctxPlay">Play now</div>
   <div class="ctx-item" id="ctxPlayNext">Play next</div>
@@ -1249,6 +1273,7 @@ body{
   <div class="ctx-item" id="ctxInfo">Track info</div>
 </div>
 
+<!-- CONFIRM MODAL -->
 <div class="modal-backdrop" id="confirmModal">
   <div class="modal">
     <h3 id="confirmTitle">Are you sure?</h3>
@@ -1260,6 +1285,7 @@ body{
   </div>
 </div>
 
+<!-- TRACK INFO MODAL -->
 <div class="modal-backdrop" id="infoModal">
   <div class="modal">
     <h3>Track Info</h3>
@@ -1270,6 +1296,7 @@ body{
   </div>
 </div>
 
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1308,16 +1335,12 @@ const EQ_PRESETS = [
 function ls(k, d){ try{ const v=localStorage.getItem(k); return v!==null?JSON.parse(v):d; }catch(e){ return d; } }
 function sv(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 
-// ── IndexedDB V2 for Handles & Tracks caching ──────────────
-const IDB_NAME='minimal-db', IDB_STORE='handles', IDB_KEY='folder', IDB_TRACKS='tracks';
+// ── IndexedDB for FSA handle persistence ──────────────────
+const IDB_NAME='minimal-db', IDB_STORE='handles', IDB_KEY='folder';
 function idbOpen(){
   return new Promise((res,rej)=>{
-    const req=indexedDB.open(IDB_NAME,2);
-    req.onupgradeneeded=e=>{
-      const db = e.target.result;
-      if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
-      if(!db.objectStoreNames.contains(IDB_TRACKS)) db.createObjectStore(IDB_TRACKS, {keyPath: 'id'});
-    };
+    const req=indexedDB.open(IDB_NAME,1);
+    req.onupgradeneeded=e=>e.target.result.createObjectStore(IDB_STORE);
     req.onsuccess=e=>res(e.target.result);
     req.onerror=e=>rej(e.target.error);
   });
@@ -1326,43 +1349,11 @@ async function idbSave(handle){
   try{const db=await idbOpen();const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(handle,IDB_KEY);}catch(e){}
 }
 async function idbLoad(){
-  try{const db=await idbOpen();return new Promise((res)=>{const tx=db.transaction(IDB_STORE,'readonly');const req=tx.objectStore(IDB_STORE).get(IDB_KEY);req.onsuccess=e=>res(e.target.result||null);req.onerror=()=>res(null);});}catch(e){return null;}
+  try{const db=await idbOpen();return new Promise((res,rej)=>{const tx=db.transaction(IDB_STORE,'readonly');const req=tx.objectStore(IDB_STORE).get(IDB_KEY);req.onsuccess=e=>res(e.target.result||null);req.onerror=()=>res(null);});}catch(e){return null;}
 }
 async function idbClear(){
   try{const db=await idbOpen();const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).delete(IDB_KEY);}catch(e){}
 }
-async function idbSaveTracks(tracks){
-  try{
-    const db = await idbOpen();
-    const tx = db.transaction(IDB_TRACKS, 'readwrite');
-    const store = tx.objectStore(IDB_TRACKS);
-    store.clear();
-    tracks.forEach(t => {
-      // Strip out blobs and live file handles before saving to IDB
-      const copy = { ...t, file: null, url: null, art: null };
-      store.put(copy);
-    });
-  }catch(e){}
-}
-async function idbLoadTracks(){
-  try{
-    const db = await idbOpen();
-    return new Promise((res)=>{
-      const tx = db.transaction(IDB_TRACKS, 'readonly');
-      const req = tx.objectStore(IDB_TRACKS).getAll();
-      req.onsuccess = e => res(e.target.result || []);
-      req.onerror = () => res([]);
-    });
-  }catch(e){ return []; }
-}
-async function idbClearTracks(){
-  try{
-    const db = await idbOpen();
-    const tx = db.transaction(IDB_TRACKS, 'readwrite');
-    tx.objectStore(IDB_TRACKS).clear();
-  }catch(e){}
-}
-
 function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmt(s){ if(!s||isNaN(s))return'0:00'; const m=Math.floor(s/60),sec=Math.floor(s%60); return m+':'+(sec<10?'0':'')+sec; }
 function genId(file){ return btoa(encodeURIComponent(file.name+'|'+file.size)).replace(/[^a-zA-Z0-9]/g,'').slice(0,24); }
@@ -1470,6 +1461,7 @@ function init(){
 
   // FSA reopen button
   if('showDirectoryPicker' in window){
+    // Auto-restore saved folder on launch
     autoRestoreFolder();
   }
   $('loadBtn').addEventListener('click', ()=>$('folderInput').click());
@@ -1530,174 +1522,29 @@ function init(){
 }
 
 // ═══════════════════════════════════════════════════════════
-//  FILE SYSTEM ACCESS (Seamless Restoration)
+//  FILE SYSTEM ACCESS (persistent folder)
 // ═══════════════════════════════════════════════════════════
 async function autoRestoreFolder(){
-  // 1. Instantly load the cached UI from IndexedDB text metadata
-  const cachedTracks = await idbLoadTracks();
-  if(cachedTracks && cachedTracks.length > 0){
-    state.library = cachedTracks;
-    buildAlbums();
-    buildArtists();
-    renderAll();
-    updateStats();
-  }
-
-  // 2. Silently attempt to reconnect file blobs in the background
   try{
     const handle = await idbLoad();
     if(!handle) return;
     const perm = await handle.queryPermission({mode:'read'});
     if(perm === 'granted'){
       state.fsaHandle = handle;
-      const fr=$('fsaRow');if(fr)fr.style.display='';
-      await silentBackgroundSync(handle);
+      await scanAndLoad(handle);
     } else if(perm === 'prompt'){
-      showUnlockOverlay(handle);
-    } else {
-      await idbClear();
-      await idbClearTracks();
-    }
-  }catch(e){}
-}
-
-function showUnlockOverlay(handle){
-  const overlay = $('unlockOverlay');
-  overlay.style.display = 'flex';
-  $('unlockBtn').onclick = async () => {
-    try {
+      // Auto-request permission — browser will show a small prompt
       const newPerm = await handle.requestPermission({mode:'read'});
       if(newPerm === 'granted'){
         state.fsaHandle = handle;
-        overlay.style.display = 'none';
-        const fr=$('fsaRow');if(fr)fr.style.display='';
-        await silentBackgroundSync(handle);
+        await scanAndLoad(handle);
       } else {
-        overlay.style.display = 'none';
-        showToast('Permission denied. Local files cannot be played.');
+        await idbClear();
       }
-    } catch(e) {
-      overlay.style.display = 'none';
-    }
-  };
-}
-
-async function silentBackgroundSync(handle){
-  const files = [];
-  async function scan(dir){
-    for await(const [name, entry] of dir.entries()){
-      if(entry.kind==='file'){
-        const f = await entry.getFile();
-        if(/\.(mp3|flac|ogg|wav|m4a|aac|opus|wma)$/i.test(name)) files.push(f);
-      } else if(entry.kind==='directory'){
-        await scan(entry);
-      }
-    }
-  }
-  await scan(handle);
-
-  const existingMap = new Map(state.library.map(t => [t.id, t]));
-  const foundIds = new Set(files.map(f => genId(f)));
-  const newFiles = [];
-  
-  // Prune deleted files
-  const originalLength = state.library.length;
-  state.library = state.library.filter(t => foundIds.has(t.id));
-
-  // Reconnect URLs and queue art fetching
-  for(const file of files){
-    const id = genId(file);
-    if(existingMap.has(id)){
-      const t = existingMap.get(id);
-      t.file = file;
-      t.url = URL.createObjectURL(file);
-      if(!t.art) parseArtSilently(t);
     } else {
-      newFiles.push(file);
+      await idbClear();
     }
-  }
-
-  if(newFiles.length > 0){
-    parseNewFilesSilently(newFiles);
-  } else {
-    // Only re-render if files were deleted
-    if(state.library.length !== originalLength){
-      buildAlbums(); buildArtists(); renderAll(); updateStats();
-      idbSaveTracks(state.library);
-    }
-  }
-}
-
-function parseArtSilently(track){
-  window.jsmediatags.read(track.file, {
-    onSuccess(tag){
-      const t = tag.tags;
-      if(t.picture){
-        try {
-          const b = new Blob([new Uint8Array(t.picture.data)], {type:t.picture.format});
-          track.art = URL.createObjectURL(b);
-          debouncedRender();
-        } catch(e){}
-      }
-    },
-    onError(){}
-  });
-}
-
-const debouncedRender = debounce(() => {
-  buildAlbums();
-  buildArtists();
-  renderAll();
-}, 800);
-
-function parseNewFilesSilently(files){
-  let idx=0;
-  function next(){
-    if(idx>=files.length){ 
-      buildAlbums(); buildArtists(); renderAll(); updateStats();
-      idbSaveTracks(state.library);
-      return; 
-    }
-    const file=files[idx];
-    const id=genId(file);
-    const url=URL.createObjectURL(file);
-    const fallback={id,file,url,title:file.name.replace(/\.[^.]+$/,'').replace(/^\d+[\s._-]+/,'').trim(),
-      artist:'Unknown Artist',album:'Unknown Album',track:0,year:'',genre:'',art:null};
-    
-    try {
-      window.jsmediatags.read(file,{
-        onSuccess(tag){
-          const t=tag.tags;
-          let art=null;
-          if(t.picture){
-            try{
-              const b=new Blob([new Uint8Array(t.picture.data)],{type:t.picture.format});
-              art=URL.createObjectURL(b);
-            }catch(ex){}
-          }
-          const rawYear=t.year||t.TDRC||t.date||'';
-          const rawTrack=t.track||'';
-          const rawDisc=t.partOfSet||t.TPOS||'';
-          state.library.push({id,file,url,
-            title:(t.title||fallback.title).trim(),
-            artist:(t.artist||fallback.artist).trim(),
-            album:(t.album||fallback.album).trim(),
-            track:parseInt(String(rawTrack).split('/')[0])||0,
-            trackTotal:parseInt(String(rawTrack).split('/')[1])||0,
-            disc:parseInt(String(rawDisc).split('/')[0])||1,
-            discTotal:parseInt(String(rawDisc).split('/')[1])||1,
-            year:String(rawYear).match(/\d{4}/)?.[0]||'',
-            genre:(t.genre||'').trim(),
-            bpm:(t.bpm||'').toString().trim(),
-            art,lyrics:t.lyrics||t.USLT||t.SYLT||''
-          });
-          idx++;next();
-        },
-        onError(){state.library.push(fallback);idx++;next();}
-      });
-    }catch(ex){state.library.push(fallback);idx++;next();}
-  }
-  next();
+  }catch(e){}
 }
 
 async function openFSA(){
@@ -1793,7 +1640,6 @@ function startParsing(files){
 
 function finishParsing(tracks){
   state.library = tracks;
-  idbSaveTracks(tracks); // Save textual cache immediately
   buildAlbums();
   buildArtists();
   $('loadingBar').style.width='100%';
@@ -1846,9 +1692,8 @@ async function clearLibrary(){
   state.currentTrack=null;state.queue=[];state.history_stack=[];
   audio.pause();audio.src='';
   $('miniPlayer').classList.remove('visible');
-  await idbClear(); // forget saved folder
-  await idbClearTracks(); // forget cache
-  const fr=$('fsaRow');if(fr)fr.style.display='none';
+  idbClear(); // forget saved folder
+  const fr=$('fsaRow');if(fr)fr.style.display='';
   renderAll();updateStats();
 }
 
@@ -2171,6 +2016,7 @@ function buildTrackItem(track, displayIdx, contextList, contextIdx){
     const t=e.touches[0]; 
     el._touchTimer=setTimeout(()=>{
       if(!state.multiSelect){
+        // Long press enters multi-select and selects this track
         toggleSelect(track.id);
       } else {
         openCtxMenu({clientX:t.clientX,clientY:t.clientY},track);
@@ -2195,8 +2041,7 @@ function getDurObserver(){
       _durObserver.unobserve(el);
       if(durationCache[id]){ el.textContent=fmt(durationCache[id]); return; }
       const t = state.library.find(x=>x.id===id);
-      // Wait for URL to exist if it is being synced in background
-      if(!t || !t.url) return;
+      if(!t) return;
       const a=new Audio(); a.src=t.url;
       a.addEventListener('loadedmetadata',()=>{
         durationCache[id]=a.duration; el.textContent=fmt(a.duration); a.src='';
@@ -2251,10 +2096,6 @@ function playFromList(tracks,startIdx){
 }
 
 function loadTrack(track){
-  if(!track.url){
-    showToast('Syncing track, please wait...');
-    return;
-  }
   initAudio(); if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
   state.currentTrack=track;
   audio.src=track.url;
@@ -2272,18 +2113,24 @@ function loadTrack(track){
   if(state.history.length>500) state.history.shift();
   sv('history',state.history);
   if(typeof hideLyrics==='function')hideLyrics();updatePlayerUI();updateMiniPlayer();updateMediaSession();markPlayingItems();
+  // Extract and apply colour wash
+  const _art = state.currentTrack?.art||null;
+  if(_art){ extractDominantColour(_art, applyColourWash); }
+  else { applyColourWash(null); }
   scheduleCrossfade();
 }
 
 function scheduleCrossfade(){
   clearTimeout(crossfadeTimeout);
   if(!state.crossfade) return;
+  // Check after each second if near end
   crossfadeTimeout=setInterval(()=>{
     if(!audio.duration) return;
     const remaining=audio.duration-audio.currentTime;
     if(remaining<=state.crossfade&&state.queue.length){
       clearInterval(crossfadeTimeout);
       const next=state.queue.shift();
+      // fade out via gainNode (not audio.volume)
       const steps=state.crossfade*10;
       let step=0;
       const fadeOut=setInterval(()=>{
@@ -2291,6 +2138,7 @@ function scheduleCrossfade(){
         if(gainNode) gainNode.gain.setValueAtTime(Math.max(0,1-(step/steps)), audioCtx.currentTime);
         if(step>=steps){clearInterval(fadeOut);audio.pause();if(gainNode)gainNode.gain.value=1;}
       },100);
+      // start next
       loadTrack(next);renderQueueBadge();
     }
   },500);
@@ -2479,6 +2327,7 @@ function applyEQPreset(gains, presetName){
 }
 
 function getActivePresetName(){
+  // find matching preset
   for(const p of EQ_PRESETS){
     if(p.gains.every((g,i)=>g===state.eqGains[i])) return p.name;
   }
@@ -2486,6 +2335,7 @@ function getActivePresetName(){
 }
 
 function buildEQ(){
+  // Presets row
   const presetsRow = $('eqPresets');
   if(presetsRow){
     presetsRow.innerHTML = '';
@@ -2499,6 +2349,7 @@ function buildEQ(){
     });
   }
 
+  // Sliders grid
   const grid=$('eqGrid');grid.innerHTML='';
   EQ_BANDS.forEach((band,i)=>{
     const div=document.createElement('div');div.className='eq-band';
@@ -2512,6 +2363,7 @@ function buildEQ(){
       state.eqGains[i]=gain;if(eqFilters[i])eqFilters[i].gain.value=gain;
       val.textContent=(gain>0?'+':'')+gain+'dB';
       sv('eqGains',state.eqGains);
+      // refresh preset highlights without rebuilding sliders
       const activeName = getActivePresetName();
       document.querySelectorAll('.eq-preset-btn').forEach(b=>{
         b.classList.toggle('active', b.textContent === activeName.toUpperCase());
@@ -2522,6 +2374,7 @@ function buildEQ(){
     grid.appendChild(div);
   });
 
+  // Reset button
   const resetBtn = $('eqResetBtn');
   if(resetBtn){
     resetBtn.onclick = () => applyEQPreset(EQ_PRESETS[0].gains, 'Flat');
@@ -2549,6 +2402,7 @@ function setupAudio(){
     scr.value=pct;scr.style.setProperty('--prog',pct+'%');
     $('miniProgressFill').style.width=pct+'%';
     $('timeCurrent').textContent=fmt(audio.currentTime);
+    // Timed lyrics sync on seek
     if(_lyrTimed && $('lyricsOverlay').classList.contains('show') && !_lyrRAF){
       _lyrRAF = requestAnimationFrame(tickLyrics);
     }
@@ -2571,6 +2425,7 @@ function setupAudio(){
   $('scrubber').addEventListener('change',e=>{
     state.scrubbing=false;
     if(audio.duration) audio.currentTime=(e.target.value/100)*audio.duration;
+    // Re-sync lyrics after seek
     if(_lyrTimed && $('lyricsOverlay').classList.contains('show')){
       _lyrActive=-1;
       cancelAnimationFrame(_lyrRAF);
@@ -2662,7 +2517,9 @@ function closeCtx(){
 // ═══════════════════════════════════════════════════════════
 //  OVERLAY / MODALS
 // ═══════════════════════════════════════════════════════════
+// ── LRC PARSER ──────────────────────────────────────────────
 function parseLRC(text){
+  // Returns [{time:seconds, text:string}] sorted by time, or null if no timestamps
   const lines = text.split('\n');
   const parsed = [];
   const lrcRe = /^\[(\d{1,3}):(\d{2}(?:\.\d+)?)\](.*)/;
@@ -2680,12 +2537,14 @@ function parseLRC(text){
 }
 
 function plainLines(text){
+  // Split plain lyrics into lines, skip blanks
   return text.split('\n').map(l=>l.trim()).filter(Boolean);
 }
 
-let _lyrTimed = null;
-let _lyrPlain = null;
-let _lyrActive = -1;
+// ── LYRICS STATE ─────────────────────────────────────────────
+let _lyrTimed = null;   // [{time, text}] or null
+let _lyrPlain = null;   // [string] or null
+let _lyrActive = -1;    // current active line index
 let _lyrRAF = null;
 
 function buildLyrLines(lines){
@@ -2719,12 +2578,14 @@ function setActiveLine(idx){
     }
   });
 
+  // Scroll active line to vertical centre of container
   const container = $('lyrLines');
   const activeLine = container.children[idx];
   if(!activeLine) return;
   const containerH = container.offsetHeight;
   const lineTop = activeLine.offsetTop;
   const lineH = activeLine.offsetHeight;
+  // We translate the whole container so active line is centred
   const offset = containerH/2 - lineTop - lineH/2;
   container.style.transform = `translateY(${offset}px)`;
 }
@@ -2760,6 +2621,7 @@ function showLyrics(){
   $('lyricsBtn').classList.add('active');
   $('lyricsBtn').textContent='HIDE';
 
+  // Start timed sync or just show first line highlighted
   if(timed){
     cancelAnimationFrame(_lyrRAF);
     _lyrRAF = requestAnimationFrame(tickLyrics);
@@ -2826,6 +2688,7 @@ function setupModals(){
     state.lyrics[state.currentTrack.id]=$('lyricsEditArea').value;
     sv('lyrics',state.lyrics);updateLyricsSection();$('lyricsModal').classList.remove('open');
   });
+  // Close modals on backdrop click
   ['plModal','addToPLModal','sleepModal','infoModal','lyricsModal','confirmModal'].forEach(id=>{
     $(id).addEventListener('click',e=>{if(e.target.classList.contains('modal-backdrop'))$(id).classList.remove('open');});
   });
@@ -2885,8 +2748,10 @@ function buildTabs(){
     ...TABS_DEF.filter(t=>!order.includes(t.id))
   ];
   state.activeTabs=ord.filter(t=>!hidden.includes(t.id));
+  // Clamp index
   if(state.currentTabIndex>=state.activeTabs.length) state.currentTabIndex=state.activeTabs.length-1;
   if(state.currentTabIndex<0) state.currentTabIndex=0;
+  // Rebuild nav
   const nav=$('tabNav');nav.innerHTML='';
   state.activeTabs.forEach((tab,i)=>{
     const btn=document.createElement('button');
@@ -2895,6 +2760,7 @@ function buildTabs(){
     btn.addEventListener('click',()=>switchTab(i));
     nav.appendChild(btn);
   });
+  // Show/hide views by toggling active-view class — no DOM moves, no transform
   TABS_DEF.forEach(tab=>{
     const el=$(tab.viewId);if(!el)return;
     const isActive=state.activeTabs[state.currentTabIndex]?.viewId===tab.viewId;
@@ -2918,6 +2784,9 @@ function switchTab(i,animate=true){
     if(j===i) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
   });
   if(window._syncSearchToTab) window._syncSearchToTab();
+}
+function updateSlider(){
+  // No-op — kept for compatibility. Views are shown via active-view class.
 }
 
 function setupSwipe(){
@@ -2943,6 +2812,7 @@ function setupSwipe(){
 function renderTabSettings(){
   const c=$('tabSettingsContainer');c.innerHTML='';c.style.cssText='';
 
+  // Get ordered list (respects current order in tabSettings.order)
   const {hidden, order} = state.tabSettings;
   const orderedTabs = [
     ...order.map(id=>TABS_DEF.find(t=>t.id===id)).filter(t=>t&&t.id!=='settings'),
@@ -2976,13 +2846,16 @@ function renderTabSettings(){
       if(i===-1) state.tabSettings.hidden.push(tab.id);
       else state.tabSettings.hidden.splice(i,1);
       sv('tabSettings',state.tabSettings);
+      // Update this toggle visually right now — no re-render
       const isNowHidden=state.tabSettings.hidden.includes(tab.id);
       tog.classList.toggle('on',!isNowHidden);
+      // Animate tab bar — exit waits 220ms before rebuild, then re-render settings
       _rebuildTabsInPlace(()=>renderTabSettings());
     });
 
     row.appendChild(left);row.appendChild(tog);
 
+    // Drag to reorder
     row.addEventListener('dragstart',e=>{
       e.dataTransfer.setData('text/plain',tab.id);
       row.style.cssText+='opacity:.35;transition:opacity .15s ease';
@@ -3009,6 +2882,7 @@ function renderTabSettings(){
       ord.splice(fromIdx,1);ord.splice(toIdx,0,fromId);
       state.tabSettings.order=[...ord,'settings'];
       sv('tabSettings',state.tabSettings);
+      // Animate settings rows out then rebuild
       const c=$('tabSettingsContainer');
       c.style.transition='opacity .18s ease';
       c.style.opacity='0';
@@ -3027,6 +2901,7 @@ function _rebuildTabsInPlace(onDone){
   const currentId = state.activeTabs[state.currentTabIndex]?.id || 'settings';
   const oldIds = state.activeTabs.map(t => t.id);
 
+  // Snapshot existing buttons mapped by id so we can animate them out
   const nav = $('tabNav');
   const oldBtns = {};
   nav.querySelectorAll('.tab-btn').forEach((btn, j) => {
@@ -3034,6 +2909,8 @@ function _rebuildTabsInPlace(onDone){
     if(id) oldBtns[id] = btn;
   });
 
+  // Find which tabs are being removed
+  // (We need the new active list before rebuild to know what's leaving)
   const {hidden, order} = state.tabSettings;
   const ord = [
     ...order.map(id => TABS_DEF.find(t => t.id === id)).filter(Boolean),
@@ -3043,6 +2920,7 @@ function _rebuildTabsInPlace(onDone){
   const newIds = nextActiveTabs.map(t => t.id);
   const removedIds = oldIds.filter(id => !newIds.includes(id));
 
+  // Animate removed buttons out, then rebuild
   const EXIT_MS = 240;
   if(removedIds.length > 0){
     removedIds.forEach(id => {
@@ -3059,6 +2937,7 @@ function _rebuildTabsInPlace(onDone){
     buildTabs();
     const newIdx = state.activeTabs.findIndex(t => t.id === currentId);
     if(newIdx !== -1) state.currentTabIndex = newIdx;
+    // Reapply active-view
     TABS_DEF.forEach(tab => {
       const el = $(tab.viewId); if(!el) return;
       const isActive = state.activeTabs[state.currentTabIndex]?.viewId === tab.viewId;
@@ -3067,6 +2946,7 @@ function _rebuildTabsInPlace(onDone){
     document.querySelectorAll('.tab-btn').forEach((b,j) =>
       b.classList.toggle('active', j === state.currentTabIndex)
     );
+    // Animate new tabs popping in
     nav.querySelectorAll('.tab-btn').forEach((btn, j) => {
       const id = state.activeTabs[j]?.id;
       if(id && !oldIds.includes(id)){
@@ -3097,6 +2977,7 @@ function setupSearch(){
   const inp=$('globalSearchInput');
   const clr=$('searchClearBtn');
 
+  // Map tab id to render function
   const tabRenderers={
     albums:renderAlbums, artists:renderArtists, tracks:renderTracks,
     playlists:renderPlaylists, favorites:renderFavorites, history:renderHistory,
@@ -3136,6 +3017,7 @@ function setupSearch(){
     if(e.key==='Escape'){closeSearch();}
   });
 
+  // Update placeholder + value when tab changes
   window._syncSearchToTab=function(){
     if(!state.searchOpen)return;
     const tabId=state.activeTabs[state.currentTabIndex]?.id||'';
@@ -3145,6 +3027,7 @@ function setupSearch(){
 }
 
 function wireButtons(){
+  // Restore persisted playback state
   $('shuffleBtn').classList.toggle('active-mode',state.shuffle);
   $('repeatBtn').classList.toggle('active-mode',state.repeatMode!=='none');
   $('repeatBtn').textContent=state.repeatMode==='one'?'REPEAT 1':state.repeatMode==='all'?'REPEAT ALL':'REPEAT';
@@ -3161,7 +3044,57 @@ function wireButtons(){
 // ═══════════════════════════════════════════════════════════
 //  UI UPDATES
 // ═══════════════════════════════════════════════════════════
+// ── COLOUR EXTRACTION ────────────────────────────────────────
+function extractDominantColour(imgSrc, cb){
+  if(!imgSrc){ cb(null); return; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = ()=>{
+    try{
+      const canvas = document.createElement('canvas');
+      const SIZE = 24; // small sample — fast
+      canvas.width = canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, SIZE, SIZE);
+      const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+      // Sample pixels, skip very light/dark/grey ones
+      let r=0,g=0,b=0,count=0;
+      for(let i=0;i<data.length;i+=16){
+        const pr=data[i],pg=data[i+1],pb=data[i+2];
+        const brightness=(pr+pg+pb)/3;
+        const saturation=Math.max(pr,pg,pb)-Math.min(pr,pg,pb);
+        if(brightness>20&&brightness<235&&saturation>20){
+          r+=pr;g+=pg;b+=pb;count++;
+        }
+      }
+      if(!count){cb(null);return;}
+      r=Math.round(r/count);g=Math.round(g/count);b=Math.round(b/count);
+      // Darken it for better readability
+      const factor=0.55;
+      cb(`rgb(${Math.round(r*factor)},${Math.round(g*factor)},${Math.round(b*factor)})`);
+    }catch(e){cb(null);}
+  };
+  img.onerror=()=>cb(null);
+  img.src=imgSrc;
+}
+
+function applyColourWash(colour){
+  const wash=$('ovColourWash');
+  if(wash){
+    if(!colour){
+      wash.style.opacity='0';
+    } else {
+      wash.style.background=`linear-gradient(180deg, ${colour} 0%, transparent 70%)`;
+      wash.style.opacity='1';
+    }
+  }
+  // Tint mini progress track
+  const mp=$('miniProgressFill');
+  if(mp) mp.style.background=colour||'var(--scr-fill)';
+}
+
 function updatePlayerUI(){
+
   if(!state.currentTrack)return;
   const t=state.currentTrack;
   $('nowTitle').textContent=t.title;
@@ -3217,6 +3150,7 @@ init();
 // ═══════════════════════════════════════════════════════════
 (function(){
 
+  // ── Inline SVG icon (minimal. logo as icon) ──────────────
   function makeIconSVG(bg, fg, size){
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
       <rect width="${size}" height="${size}" rx="${size*0.22}" fill="${bg}"/>
@@ -3235,6 +3169,7 @@ init();
   const iconDark192  = svgToDataURL(makeIconSVG('#0a0a0a','#ffffff',192));
   const iconDark512  = svgToDataURL(makeIconSVG('#0a0a0a','#ffffff',512));
 
+  // ── Inject manifest dynamically ──────────────────────────
   function injectManifest(dark){
     const manifest = {
       name: 'minimal.',
@@ -3257,7 +3192,8 @@ init();
     if(link) link.href = url;
   }
 
-  const SW_VERSION = 'minimal-v2';
+  // ── Service Worker (inline via blob) ─────────────────────
+  const SW_VERSION = 'minimal-v1';
   const swCode = `
 const CACHE = '${SW_VERSION}';
 const OFFLINE_URL = '/';
@@ -3274,8 +3210,10 @@ self.addEventListener('activate', e => {
   );
 });
 
+// Network-first for navigation, cache-first for assets
 self.addEventListener('fetch', e => {
   if(e.request.method !== 'GET') return;
+  // For audio blobs (object URLs) — don't cache
   if(e.request.url.startsWith('blob:')) return;
   e.respondWith(
     fetch(e.request)
@@ -3293,18 +3231,25 @@ self.addEventListener('fetch', e => {
 
   function registerSW(){
     if(!('serviceWorker' in navigator)) return;
+    // SW requires a real HTTP/HTTPS origin — blob: and file: URLs are not supported.
+    // When served from a web server, inject the SW as a same-origin script instead.
     const origin = location.protocol;
-    if(origin !== 'http:' && origin !== 'https:') return;
+    if(origin !== 'http:' && origin !== 'https:') return; // local file — skip silently
 
+    // Try data: URL approach (supported in some browsers when on http/https)
     try {
       const b64 = btoa(unescape(encodeURIComponent(swCode)));
       const dataUrl = 'data:application/javascript;base64,' + b64;
       navigator.serviceWorker.register(dataUrl, {scope: './'})
         .then(reg => console.log('[minimal.] SW registered'))
-        .catch(() => {});
+        .catch(() => {
+          // data: URL also blocked (Chrome) — silently skip
+          // Offline caching unavailable in single-file mode
+        });
     } catch(e) {}
   }
 
+  // ── iOS install prompt helper ─────────────────────────────
   function showIOSInstallHint(){
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandalone = window.navigator.standalone === true;
@@ -3338,6 +3283,7 @@ self.addEventListener('fetch', e => {
     });
   }
 
+  // ── Desktop/Android install prompt ───────────────────────
   let deferredPrompt = null;
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
@@ -3360,6 +3306,7 @@ self.addEventListener('fetch', e => {
       deferredPrompt = null;
       btn.remove();
     });
+    // Insert into header
     const hdrRight = document.querySelector('.hdr-right');
     if(hdrRight) hdrRight.insertBefore(btn, hdrRight.firstChild);
   }
@@ -3370,12 +3317,14 @@ self.addEventListener('fetch', e => {
     deferredPrompt = null;
   });
 
+  // ── Sync theme-color meta with dark mode ─────────────────
   window._pwaUpdateTheme = function(dark){
     injectManifest(dark);
     const meta = document.querySelector('meta[name="theme-color"]:not([media])');
     if(meta) meta.content = dark ? '#0a0a0a' : '#ffffff';
   };
 
+  // ── Boot ─────────────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', ()=>{
     const dark = localStorage.getItem('darkMode') === 'true';
     injectManifest(dark);
