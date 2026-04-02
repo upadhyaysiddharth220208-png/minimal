@@ -12,7 +12,7 @@
 <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
 <link rel="manifest" id="pwaManifest">
 <title>minimal</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 <style>
 :root{
@@ -68,7 +68,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{
-  font-family:-apple-system,'SF Pro Text','Inter',system-ui,sans-serif;
+  font-family:'Quicksand',system-ui,sans-serif;
   font-feature-settings:'kern'1,'liga'1,'calt'1;
   background:var(--bg);color:var(--text);
   display:flex;flex-direction:column;height:100dvh;
@@ -524,32 +524,35 @@ body{
 .ov-colour-wash{
   position:absolute;inset:0;
   opacity:0;
-  transition:opacity 1.4s ease, background 1.4s ease;
+  transition:opacity 1.6s ease, background-color 1.6s ease;
   pointer-events:none;
   z-index:0;
 }
 .overlay > *:not(.ov-colour-wash){position:relative;z-index:1}
 .ov-handle{
-  width:28px;height:2px;background:var(--border-mid);border-radius:1px;
+  width:28px;height:2px;background:var(--ov-border,var(--border-mid));border-radius:1px;
   margin:16px auto 0;flex-shrink:0;cursor:pointer;
 }
 .ov-header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:10px 28px 0;flex-shrink:0;
+  padding:8px 20px 0;flex-shrink:0;
 }
 .ov-label{
-  font-size:12px;font-weight:400;letter-spacing:0;
-  color:var(--text3);
+  font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ov-text3,var(--text3));
 }
-.ov-close{
-  font-family:inherit;font-size:11px;font-weight:400;
-  background:none;border:none;color:var(--text3);cursor:pointer;
-  padding:4px 0;transition:color var(--trans);
+.ov-icon-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--ov-text3,var(--text3));
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s ease,transform .16s cubic-bezier(.34,1.56,.64,1);
 }
-.ov-close:hover{color:var(--text)}
+.ov-icon-btn:active{opacity:.5;transform:scale(.88)}
+.ov-icon-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ov-scroll{
   flex:1;overflow-y:auto;
-  padding:0 28px 56px;
+  padding:0 32px 40px;
   scrollbar-width:none;
   display:flex;flex-direction:column;
   justify-content:center;
@@ -557,8 +560,8 @@ body{
 .ov-scroll::-webkit-scrollbar{display:none}
 .now-art-wrap{
   position:relative;
-  width:min(256px,66vw);height:min(256px,66vw);
-  margin:0 auto 20px;flex-shrink:0;
+  width:min(300px,76vw);height:min(300px,76vw);
+  margin:0 auto 28px;flex-shrink:0;
 }
 .now-art{
   width:100%;height:100%;
@@ -626,27 +629,37 @@ body{
 }
 .now-lyrics-close:hover{background:rgba(0,0,0,.5)}
 .now-lyrics-btn{
-  position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);
-  font-family:inherit;font-size:9px;font-weight:600;
-  letter-spacing:.06em;padding:3px 11px;border-radius:9px;
-  border:1px solid var(--border-mid);
-  background:var(--bg);color:var(--text3);
-  cursor:pointer;transition:all var(--trans);white-space:nowrap;
+  background:none;border:none;cursor:pointer;flex-shrink:0;
+  color:var(--ov-text3,var(--text3));
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s ease,transform .16s cubic-bezier(.34,1.56,.64,1),color .2s ease;
 }
-.now-lyrics-btn:hover{color:var(--text);border-color:var(--text)}
-.now-lyrics-btn.active{background:var(--text);color:var(--bg);border-color:transparent}
+.now-lyrics-btn:active{transform:scale(.88)}
+.now-lyrics-btn.active{color:var(--ov-text,var(--text))}
+.now-lyrics-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* meta */
-.now-meta{text-align:center;margin-bottom:24px;margin-top:20px}
-.now-title{
-  font-size:20px;font-weight:600;margin-bottom:5px;
-  letter-spacing:-.4px;line-height:1.2;
+.now-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;margin-top:8px;gap:12px;
 }
-.now-artist{font-size:15px;color:var(--text3);font-weight:400;letter-spacing:-.1px}
-.now-genre{font-size:11px;color:var(--text3);margin-top:2px}
+.now-meta-left{flex:1;min-width:0}
+.now-title{
+  font-size:20px;font-weight:700;margin-bottom:3px;
+  letter-spacing:-.5px;line-height:1.2;
+  color:var(--ov-text,var(--text));
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.now-artist{
+  font-size:14px;color:var(--ov-text2,var(--text3));
+  font-weight:500;letter-spacing:-.1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.now-genre{display:none}
 
 /* scrubber */
-.scr-wrap{padding:6px 0;cursor:pointer;margin-bottom:2px}
+.scr-wrap{padding:6px 0;cursor:pointer;margin-bottom:2px;--scr-track:var(--ov-border,var(--scr-track));--scr-fill:var(--ov-text,var(--scr-fill))}
 .scrubber{
   width:100%;height:2px;border-radius:1px;
   cursor:pointer;-webkit-appearance:none;appearance:none;outline:none;display:block;
@@ -674,32 +687,40 @@ body{
 }
 .time-row{
   display:flex;justify-content:space-between;
-  font-size:11px;color:var(--text3);font-weight:400;
+  font-size:11px;color:var(--ov-text3,var(--text3));font-weight:400;
   margin-bottom:22px;font-variant-numeric:tabular-nums;
 }
 
 /* playback controls */
 .pb-controls{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 4px;margin-bottom:0;
+}
+.ctrl-icon-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--ov-text,var(--text));
   display:flex;align-items:center;justify-content:center;
-  gap:8px;margin-bottom:0;flex-wrap:nowrap;
+  transition:opacity .15s ease,transform .18s cubic-bezier(.34,1.56,.64,1),color .2s ease;
+  position:relative;
 }
-.ctrl-btn{
-  font-family:inherit;font-size:10px;font-weight:500;
-  letter-spacing:0;padding:10px 18px;border-radius:20px;
-  border:1px solid var(--border-mid);
-  background:transparent;color:var(--text);
-  cursor:pointer;
-  transition:transform .16s cubic-bezier(.34,1.56,.64,1),opacity .14s ease,background .2s ease;
+.ctrl-icon-btn svg{
+  stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;
+  display:block;
 }
-.ctrl-btn:active{transform:scale(.92);opacity:.7}
-.ctrl-btn.primary{
-  padding:12px 32px;font-size:13px;
-  background:var(--text);color:var(--accent-text);
-  border-color:transparent;
+.ctrl-icon-btn:active{opacity:.5;transform:scale(.88)}
+/* small btns — shuffle, prev, next, repeat */
+.ctrl-icon-btn svg{width:24px;height:24px}
+/* big play button */
+.ctrl-icon-btn.primary svg{width:32px;height:32px}
+.ctrl-icon-btn.primary{
+  background:var(--ov-text,var(--text));
+  color:var(--ov-bg,var(--accent-text));
+  width:64px;height:64px;border-radius:50%;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
 }
-.ctrl-btn.active-mode{
-  background:var(--text);color:var(--accent-text);border-color:transparent;
-}
+.ctrl-icon-btn.primary:active{transform:scale(.92)}
+.ctrl-icon-btn.active-mode{color:var(--ov-text,var(--text));opacity:.5}
 
 /* sleep */
 .sleep-indicator{
@@ -1148,8 +1169,13 @@ body{
 <div class="overlay" id="nowOverlay"><div class="ov-colour-wash" id="ovColourWash"></div>
   <div class="ov-handle" id="ovHandle"></div>
   <div class="ov-header">
+    <button class="ov-icon-btn" id="ovClose">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
     <div class="ov-label">Now Playing</div>
-    <button class="ov-close" id="ovClose">CLOSE</button>
+    <button class="ov-icon-btn" id="ovQueueBtn">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>
+    </button>
   </div>
   <div class="ov-scroll">
     <div class="now-art-wrap">
@@ -1158,12 +1184,16 @@ body{
         <div class="lyr-lines" id="lyrLines"></div>
         <button class="now-lyrics-close" id="lyricsOverlayClose">✕</button>
       </div>
-      <button class="now-lyrics-btn" id="lyricsBtn" style="display:none">LYRICS</button>
     </div>
+
     <div class="now-meta">
-      <div class="now-title" id="nowTitle">Nothing playing</div>
-      <div class="now-artist" id="nowArtist">---</div>
-      <div class="now-genre" id="nowGenre"></div>
+      <div class="now-meta-left">
+        <div class="now-title" id="nowTitle">Nothing playing</div>
+        <div class="now-artist" id="nowArtist">---</div>
+      </div>
+      <button class="now-lyrics-btn" id="lyricsBtn" style="display:none">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
     </div>
 
     <!-- Scrubber -->
@@ -1175,17 +1205,26 @@ body{
       <span id="timeTotal">0:00</span>
     </div>
 
-
-    <!-- Sleep indicator (hidden, kept for sleep timer function) -->
+    <!-- Sleep indicator -->
     <div class="sleep-indicator" id="sleepIndicator" style="display:none"></div>
 
     <!-- Controls -->
     <div class="pb-controls">
-      <button class="ctrl-btn" id="shuffleBtn">SHUFFLE</button>
-      <button class="ctrl-btn" id="prevBtn">PREV</button>
-      <button class="ctrl-btn primary" id="overlayPlayBtn">PLAY</button>
-      <button class="ctrl-btn" id="nextBtn">NEXT</button>
-      <button class="ctrl-btn" id="repeatBtn">REPEAT</button>
+      <button class="ctrl-icon-btn" id="shuffleBtn" title="Shuffle">
+        <svg viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+      </button>
+      <button class="ctrl-icon-btn" id="prevBtn" title="Previous">
+        <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+      </button>
+      <button class="ctrl-icon-btn primary" id="overlayPlayBtn" title="Play">
+        <svg id="overlayPlayIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button class="ctrl-icon-btn" id="nextBtn" title="Next">
+        <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </button>
+      <button class="ctrl-icon-btn" id="repeatBtn" title="Repeat">
+        <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -1458,6 +1497,7 @@ function init(){
   setupContextMenu();
   setupSettings();
   wireButtons();
+  setupSearch();
 
   // FSA reopen button
   if('showDirectoryPicker' in window){
@@ -2643,6 +2683,7 @@ function setupOverlay(){
   const ov=$('nowOverlay');
   $('ovClose').addEventListener('click',closeOverlay);
   $('ovHandle').addEventListener('click',closeOverlay);
+  $('ovQueueBtn').addEventListener('click',()=>{closeOverlay();setTimeout(openQueueDrawer,320);});
   $('prevBtn').addEventListener('click',prevTrack);
   $('nextBtn').addEventListener('click',nextTrack);
   $('overlayPlayBtn').addEventListener('click',togglePlay);
@@ -3067,28 +3108,49 @@ function extractDominantColour(imgSrc, cb){
           r+=pr;g+=pg;b+=pb;count++;
         }
       }
-      if(!count){cb(null);return;}
+      if(!count){cb(null,0);return;}
       r=Math.round(r/count);g=Math.round(g/count);b=Math.round(b/count);
-      // Darken it for better readability
-      const factor=0.55;
-      cb(`rgb(${Math.round(r*factor)},${Math.round(g*factor)},${Math.round(b*factor)})`);
+      const brightness=(r*299+g*587+b*114)/1000;
+      // Saturate and darken for a rich, moody background
+      const factor=0.48;
+      cb(`rgb(${Math.round(r*factor)},${Math.round(g*factor)},${Math.round(b*factor)})`,brightness*factor);
     }catch(e){cb(null);}
   };
   img.onerror=()=>cb(null);
   img.src=imgSrc;
 }
 
-function applyColourWash(colour){
+function applyColourWash(colour, brightness){
   const wash=$('ovColourWash');
+  const ov=$('nowOverlay');
   if(wash){
     if(!colour){
       wash.style.opacity='0';
+      // Reset text colours to default
+      if(ov){
+        ov.style.removeProperty('--ov-text');
+        ov.style.removeProperty('--ov-text2');
+        ov.style.removeProperty('--ov-text3');
+        ov.style.removeProperty('--ov-border');
+      }
     } else {
-      wash.style.background=`linear-gradient(180deg, ${colour} 0%, transparent 70%)`;
+      wash.style.backgroundColor=colour;
       wash.style.opacity='1';
+      // Adaptive text — light or dark based on background brightness
+      const isLight=(brightness||0)>140;
+      const textMain = isLight ? 'rgba(0,0,0,.92)' : 'rgba(255,255,255,.95)';
+      const textMid  = isLight ? 'rgba(0,0,0,.6)'  : 'rgba(255,255,255,.65)';
+      const textDim  = isLight ? 'rgba(0,0,0,.38)' : 'rgba(255,255,255,.38)';
+      const borderCol= isLight ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.14)';
+      if(ov){
+        ov.style.setProperty('--ov-text',   textMain);
+        ov.style.setProperty('--ov-text2',  textMid);
+        ov.style.setProperty('--ov-text3',  textDim);
+        ov.style.setProperty('--ov-border', borderCol);
+      }
     }
   }
-  // Tint mini progress track
+  // Tint mini progress
   const mp=$('miniProgressFill');
   if(mp) mp.style.background=colour||'var(--scr-fill)';
 }
@@ -3114,7 +3176,12 @@ function updateMiniPlayer(){
 function updatePlayButtons(){
   const p=state.isPlaying;
   $('miniPlayBtn').textContent=p?'PAUSE':'PLAY';
-  $('overlayPlayBtn').textContent=p?'PAUSE':'PLAY';
+  const icon=$('overlayPlayIcon');
+  if(icon){
+    icon.innerHTML=p
+      ?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+      :'<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
 }
 function markPlayingItems(){
   const curId = state.currentTrack?.id;
@@ -3249,73 +3316,7 @@ self.addEventListener('fetch', e => {
     } catch(e) {}
   }
 
-  // ── iOS install prompt helper ─────────────────────────────
-  function showIOSInstallHint(){
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone = window.navigator.standalone === true;
-    const dismissed = localStorage.getItem('pwa-hint-dismissed');
-    if(!isIOS || isStandalone || dismissed) return;
-
-    const hint = document.createElement('div');
-    hint.id = 'iosHint';
-    hint.style.cssText = `
-      position:fixed;bottom:0;left:0;right:0;z-index:9999;
-      background:var(--bg);border-top:1.5px solid var(--border);
-      padding:14px 18px 28px;display:flex;align-items:flex-start;gap:12px;
-      font-family:inherit;
-      animation:slideUp .3s ease;
-    `;
-    hint.innerHTML = `
-      <div style="font-size:28px;line-height:1;flex-shrink:0">⬆</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;margin-bottom:3px">Install minimal.</div>
-        <div style="font-size:11px;color:var(--text3);line-height:1.5">Tap <b>Share</b> then <b>Add to Home Screen</b> to install as an app.</div>
-      </div>
-      <button id="iosHintClose" style="
-        background:none;border:none;color:var(--text3);
-        font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1
-      ">✕</button>
-    `;
-    document.body.appendChild(hint);
-    document.getElementById('iosHintClose').addEventListener('click', ()=>{
-      hint.remove();
-      localStorage.setItem('pwa-hint-dismissed','1');
-    });
-  }
-
-  // ── Desktop/Android install prompt ───────────────────────
-  let deferredPrompt = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallBtn();
-  });
-
-  function showInstallBtn(){
-    const existing = document.getElementById('installBtn');
-    if(existing) return;
-    const btn = document.createElement('button');
-    btn.id = 'installBtn';
-    btn.className = 'pill inv';
-    btn.style.cssText = 'font-size:9px;padding:5px 10px';
-    btn.textContent = 'INSTALL';
-    btn.addEventListener('click', async ()=>{
-      if(!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      btn.remove();
-    });
-    // Insert into header
-    const hdrRight = document.querySelector('.hdr-right');
-    if(hdrRight) hdrRight.insertBefore(btn, hdrRight.firstChild);
-  }
-
-  window.addEventListener('appinstalled', ()=>{
-    const btn = document.getElementById('installBtn');
-    if(btn) btn.remove();
-    deferredPrompt = null;
-  });
+  // PWA install handled natively by browser
 
   // ── Sync theme-color meta with dark mode ─────────────────
   window._pwaUpdateTheme = function(dark){
@@ -3329,7 +3330,6 @@ self.addEventListener('fetch', e => {
     const dark = localStorage.getItem('darkMode') === 'true';
     injectManifest(dark);
     registerSW();
-    setTimeout(showIOSInstallHint, 3000);
   });
 
 })();
