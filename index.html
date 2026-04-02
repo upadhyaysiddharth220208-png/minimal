@@ -455,8 +455,8 @@ body{
 }
 .mini-drag-handle:active{cursor:grabbing}
 .mini-drag-dots{
-  width:28px;height:2px;background:var(--border-mid);
-  border-radius:1px;margin-top:6px;
+  width:32px;height:3px;background:var(--border-mid);
+  border-radius:2px;margin:8px auto 0;display:block;
 }
 .mini-progress{
   height:2px;background:var(--scr-track);
@@ -1654,14 +1654,17 @@ function startParsing(files){
             }catch(ex){}
           }
           const rawYear=t.year||t.TDRC||t.date||'';
-          const rawTrack=t.track||'';
-          const rawDisc=t.partOfSet||t.TPOS||'';
+
+          const _tpos=t.partOfSet||t.TPOS||'';
+          const rawDisc=typeof _tpos==='object'?(_tpos.data||''):String(_tpos);
+          const _trk=t.track||'';
+          const rawTrackStr=typeof _trk==='object'?(_trk.data||''):String(_trk);
           results.push({id,file,url,
             title:(t.title||fallback.title).trim(),
             artist:(t.artist||fallback.artist).trim(),
             album:(t.album||fallback.album).trim(),
-            track:parseInt(String(rawTrack).split('/')[0])||0,
-            trackTotal:parseInt(String(rawTrack).split('/')[1])||0,
+            track:parseInt(rawTrackStr.split('/')[0])||0,
+            trackTotal:parseInt(rawTrackStr.split('/')[1])||0,
             disc:parseInt(String(rawDisc).split('/')[0])||1,
             discTotal:parseInt(String(rawDisc).split('/')[1])||1,
             year:String(rawYear).match(/\d{4}/)?.[0]||'',
@@ -2761,22 +2764,43 @@ function setupQueueDrawer(){
 //  MINI PLAYER DRAG
 // ═══════════════════════════════════════════════════════════
 function setupMiniDrag(){
-  const mini=$('miniPlayer'),handle=$('miniDragHandle');
-  let dragging=false,startY=0,startBottom=0,curBottom=0;
-  const SNAP=60;
-  const getBottom=()=>parseInt(mini.style.bottom||'0',10);
-  const start=y=>{dragging=true;startY=y;startBottom=getBottom();
-    mini.classList.add('dragging','floating');mini.style.left='16px';mini.style.right='16px';mini.style.bottom=startBottom+'px';};
-  const move=y=>{if(!dragging)return;
-    curBottom=Math.max(0,Math.min(window.innerHeight*.7,startBottom+(startY-y)));mini.style.bottom=curBottom+'px';};
-  const end=()=>{if(!dragging)return;dragging=false;mini.classList.remove('dragging');
-    if(curBottom<SNAP){mini.classList.remove('floating');mini.style.left='';mini.style.right='';mini.style.bottom='0';curBottom=0;}};
-  handle.addEventListener('mousedown',e=>{e.preventDefault();start(e.clientY);});
-  document.addEventListener('mousemove',e=>{if(dragging)move(e.clientY);});
-  document.addEventListener('mouseup',end);
-  handle.addEventListener('touchstart',e=>start(e.touches[0].clientY),{passive:true});
-  document.addEventListener('touchmove',e=>{if(dragging){e.preventDefault();move(e.touches[0].clientY);}},{passive:false});
-  document.addEventListener('touchend',end,{passive:true});
+  const mini=$('miniPlayer');
+  // Swipe up on mini player → open overlay
+  // Swipe down on overlay → close overlay
+  let sy=0,tracking=false;
+
+  // Mini player: tap opens overlay, swipe up also opens
+  mini.addEventListener('touchstart',e=>{
+    sy=e.touches[0].clientY;tracking=true;
+  },{passive:true});
+  mini.addEventListener('touchend',e=>{
+    if(!tracking)return;tracking=false;
+    const dy=sy-e.changedTouches[0].clientY;
+    if(dy>30) openOverlay(); // swipe up
+  },{passive:true});
+
+  // Overlay: swipe down → close
+  const ov=$('nowOverlay');
+  let osy=0,otracking=false,odelta=0;
+  ov.addEventListener('touchstart',e=>{
+    osy=e.touches[0].clientY;otracking=true;odelta=0;
+  },{passive:true});
+  ov.addEventListener('touchmove',e=>{
+    if(!otracking)return;
+    odelta=e.touches[0].clientY-osy;
+    if(odelta>0){
+      // Pull down — move overlay with finger
+      ov.style.transition='none';
+      ov.style.transform=`translateY(${odelta}px)`;
+    }
+  },{passive:true});
+  ov.addEventListener('touchend',e=>{
+    if(!otracking)return;otracking=false;
+    ov.style.transition='';
+    ov.style.transform='';
+    if(odelta>80) closeOverlay();
+    odelta=0;
+  },{passive:true});
 }
 
 // ═══════════════════════════════════════════════════════════
