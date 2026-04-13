@@ -204,6 +204,7 @@ body{
   will-change:opacity,transform;
 }
 .view.active-view{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
+.view.no-transition{transition:none !important}
 .view::-webkit-scrollbar{display:none}
 
 /* ── PILLS ── */
@@ -2891,21 +2892,111 @@ function updateSlider(){
 }
 
 function setupSwipe(){
-  const wrap=$('viewsWrap');let sx=0,sy=0,locked=null;
+  const wrap=$('viewsWrap');
+  let sx=0,sy=0,locked=null,swiping=false,dx=0;
+  let curEl=null,adjEl=null,adjIdx=-1;
+
+  function getView(i){
+    if(i<0||i>=state.activeTabs.length)return null;
+    return $(state.activeTabs[i].viewId);
+  }
+  function cleanEl(el){
+    if(!el)return;
+    el.style.transition='';el.style.transform='';
+    el.style.opacity='';el.style.pointerEvents='';
+  }
+
   wrap.addEventListener('touchstart',e=>{
-    sx=e.touches[0].clientX;sy=e.touches[0].clientY;locked=null;
+    if(swiping)return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+    locked=null;dx=0;
+    curEl=getView(state.currentTabIndex);
+    adjEl=null;adjIdx=-1;
   },{passive:true});
+
   wrap.addEventListener('touchmove',e=>{
-    if(locked)return;
-    const dx=Math.abs(e.touches[0].clientX-sx),dy=Math.abs(e.touches[0].clientY-sy);
-    if(dx>8||dy>8)locked=dx>dy?'h':'v';
-  },{passive:true});
-  wrap.addEventListener('touchend',e=>{
+    const cx=e.touches[0].clientX,cy=e.touches[0].clientY;
+    if(!locked){
+      const adx=Math.abs(cx-sx),ady=Math.abs(cy-sy);
+      if(adx<6&&ady<6)return;
+      locked=adx>ady?'h':'v';
+    }
     if(locked!=='h')return;
-    const dx=e.changedTouches[0].clientX-sx;
-    if(Math.abs(dx)>48){
-      if(dx<0)switchTab(state.currentTabIndex+1);
-      else switchTab(state.currentTabIndex-1);
+    dx=cx-sx;
+
+    // On first horizontal move, prepare the adjacent view
+    if(!adjEl&&Math.abs(dx)>4){
+      // dx < 0 means swiping left → next tab (higher index)
+      // dx > 0 means swiping right → prev tab (lower index)
+      adjIdx=dx<0?state.currentTabIndex+1:state.currentTabIndex-1;
+      adjEl=getView(adjIdx);
+      if(adjEl){
+        const startX=dx<0?'100%':'-100%';
+        adjEl.style.transition='none';
+        adjEl.style.opacity='1';
+        adjEl.style.pointerEvents='none';
+        adjEl.style.transform='translateX('+startX+')';
+        // force reflow so transform takes effect before we start moving
+        adjEl.offsetHeight;
+      }
+    }
+
+    // rubber band if no adjacent tab exists
+    const W=wrap.offsetWidth||window.innerWidth;
+    let move=dx;
+    if(!adjEl) move=dx/(1+Math.abs(dx)*0.015);
+
+    if(curEl){curEl.style.transition='none';curEl.style.transform='translateX('+move+'px)';}
+    if(adjEl){
+      const sign=dx<0?1:-1;
+      adjEl.style.transform='translateX('+(sign*W+move)+'px)';
+    }
+  },{passive:true});
+
+  wrap.addEventListener('touchend',e=>{
+    if(locked!=='h'||!curEl){cleanEl(curEl);cleanEl(adjEl);locked=null;return;}
+    const W=wrap.offsetWidth||window.innerWidth;
+    const totalDx=e.changedTouches[0].clientX-sx;
+    const fast=Math.abs(totalDx)>W*0.28||Math.abs(totalDx)>55;
+    const spring='transform .5s cubic-bezier(.34,1.5,.64,1)';
+    const exit='transform .38s cubic-bezier(.4,0,.2,1)';
+
+    if(fast&&adjEl&&adjIdx>=0&&adjIdx<state.activeTabs.length){
+      swiping=true;
+      const outX=totalDx<0?-W:W;
+      curEl.style.transition=exit;
+      curEl.style.transform='translateX('+outX+'px)';
+      adjEl.style.transition=spring;
+      adjEl.style.transform='translateX(0)';
+      setTimeout(()=>{
+        const prevIdx=state.currentTabIndex;
+        state.currentTabIndex=adjIdx;
+        TABS_DEF.forEach(tab=>{
+          const el=$(tab.viewId);if(!el)return;
+          el.classList.add('no-transition');
+          const isActive=state.activeTabs[state.currentTabIndex]?.viewId===tab.viewId;
+          el.classList.toggle('active-view',isActive);
+          cleanEl(el);
+          // Remove no-transition after a frame so future tab switches animate normally
+          requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('no-transition')));
+        });
+        document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('active',j===adjIdx));
+        if(window._syncSearchToTab)window._syncSearchToTab();
+        swiping=false;dx=0;locked=null;curEl=null;adjEl=null;
+      },500);
+    } else {
+      // Snap back with bounce
+      curEl.style.transition=spring;
+      curEl.style.transform='translateX(0)';
+      if(adjEl){
+        const startX=totalDx<0?'100%':'-100%';
+        adjEl.style.transition=spring;
+        adjEl.style.transform='translateX('+startX+')';
+      }
+      setTimeout(()=>{
+        cleanEl(curEl);cleanEl(adjEl);
+        dx=0;locked=null;curEl=null;adjEl=null;
+      },500);
     }
   },{passive:true});
 }
